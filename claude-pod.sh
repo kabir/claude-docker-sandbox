@@ -104,23 +104,6 @@ while [[ $# -gt 0 ]]; do
                 # The container sees files as owned by root, but we run as claude user
                 chmod -R a+w "$COPY_PATH" 2>/dev/null || true
 
-                # Create info file inside copy for reference within container
-                cat > "$COPY_PATH/.claude-copy-info" << EOF
-# Claude Copy Mode Information
-# This directory is a COPY - original files will NOT be modified
-
-Original Location: $SRC_PATH
-Copy Location: $COPY_PATH
-Copy Created: $(date)
-Container Path: $CONTAINER_PATH
-
-To merge changes back to original:
-  rsync -av $COPY_PATH/ $SRC_PATH/
-
-To view this info:
-  cat .claude-copy-info
-EOF
-
                 # Track for cleanup message later
                 COPY_PATHS+=("$COPY_PATH|$SRC_PATH")
 
