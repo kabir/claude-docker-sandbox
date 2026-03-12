@@ -59,7 +59,8 @@ _claude-pod() {
                     _arguments \
                         '(-f --force)'{-f,--force}'[Skip confirmation]' \
                         '(-a --all)'{-a,--all}'[Remove all copies]' \
-                        '--old[Remove old copies]:days:(7 14 30)'
+                        '--old[Remove old copies]:days:(7 14 30)' \
+                        '1:copy name:_claude_pod_copy_names'
                     ;;
                 save-profile)
                     _message 'profile name'
@@ -91,6 +92,17 @@ _claude_pod_profiles() {
     if [[ -d "$profile_dir" ]]; then
         profiles=(${(f)"$(ls -1 "$profile_dir"/*.profile 2>/dev/null | xargs -n1 basename | sed 's/\.profile$//')"})
         _describe 'profile' profiles
+    fi
+}
+
+# Helper function to list available copies
+_claude_pod_copy_names() {
+    local copy_dir="$HOME/.cache/claude-copies"
+    local -a copies
+
+    if [[ -d "$copy_dir" ]]; then
+        copies=(${(f)"$(ls -1d "$copy_dir"/copy-* 2>/dev/null | xargs -n1 basename)"})
+        _describe 'copy' copies
     fi
 }
 

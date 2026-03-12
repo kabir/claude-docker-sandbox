@@ -28,6 +28,14 @@ _claude_pod_completion() {
         fi
     }
 
+    # Get available copy names
+    _get_copies() {
+        local copy_dir="$HOME/.cache/claude-copies"
+        if [[ -d "$copy_dir" ]]; then
+            ls -1d "$copy_dir"/copy-* 2>/dev/null | xargs -n1 basename
+        fi
+    }
+
     # Completion logic
     case "${prev}" in
         -m|--mount)
@@ -55,8 +63,12 @@ _claude_pod_completion() {
             return 0
             ;;
         clean-copies)
-            # Complete with clean-copies flags
-            COMPREPLY=( $(compgen -W "${clean_flags}" -- "${cur}") )
+            # Complete with clean-copies flags or copy names
+            if [[ ${cur} == -* ]]; then
+                COMPREPLY=( $(compgen -W "${clean_flags}" -- "${cur}") )
+            else
+                COMPREPLY=( $(compgen -W "$(_get_copies)" -- "${cur}") )
+            fi
             return 0
             ;;
         --old)

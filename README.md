@@ -118,8 +118,9 @@ Now you get tab completion:
 # List all copies
 ./claude-pod.sh list-copies
 
-# Clean old copies
-./claude-pod.sh clean-copies --old 7
+# Clean old copies or specific copy
+./claude-pod.sh clean-copies --old 7              # Older than 7 days
+./claude-pod.sh clean-copies copy-name-timestamp  # Specific copy
 
 # Help
 ./claude-pod.sh --help
@@ -186,6 +187,12 @@ wait
 
 # Clean all copies
 ./claude-pod.sh clean-copies --all
+
+# Remove a specific copy by name
+./claude-pod.sh clean-copies copy-project-20260312_150001
+
+# Remove specific copy without confirmation
+./claude-pod.sh clean-copies --force copy-project-20260312_150001
 
 # After completion, you get:
 # ✓ Copy mode completed!

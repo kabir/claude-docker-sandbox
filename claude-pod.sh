@@ -166,6 +166,7 @@ Commands:
     list-copies, ls-copies          List all copies
     clean-copies [--force] --all    Remove all copies (prompts unless --force)
     clean-copies [--force] --old    Remove old copies (prompts unless --force)
+    clean-copies [--force] <name>   Remove specific copy by name
     cleanup                         Remove stopped containers
 
     save-profile <name>             Save current mounts as a profile
@@ -449,6 +450,7 @@ clean_copies() {
     local FORCE=false
     local MODE=""
     local DAYS=7
+    local COPY_NAME=""
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -470,6 +472,11 @@ clean_copies() {
                 fi
                 ;;
             *)
+                # Assume it's a copy name
+                if [[ -z "$MODE" ]] && [[ -n "$1" ]]; then
+                    MODE="name"
+                    COPY_NAME="$1"
+                fi
                 shift
                 ;;
         esac
@@ -525,11 +532,57 @@ clean_copies() {
         print_info "Removing copies older than $DAYS days..."
         find "$COPY_DIR" -maxdepth 1 -name "copy-*" -type d -mtime +$DAYS -exec rm -rf {} \;
         print_success "Old copies removed"
+    elif [ "$MODE" = "name" ]; then
+        # Remove specific copy by name
+        local COPY_PATH=""
+
+        # Handle both with and without "copy-" prefix
+        if [[ "$COPY_NAME" == copy-* ]]; then
+            COPY_PATH="$COPY_DIR/$COPY_NAME"
+        else
+            COPY_PATH="$COPY_DIR/copy-$COPY_NAME"
+        fi
+
+        if [ ! -d "$COPY_PATH" ]; then
+            print_error "Copy not found: $COPY_NAME"
+            print_info "Available copies:"
+            for copy in "$COPY_DIR"/copy-*; do
+                if [ -d "$copy" ]; then
+                    echo "  $(basename "$copy")"
+                fi
+            done
+            return 1
+        fi
+
+        if [ "$FORCE" = false ]; then
+            SIZE=$(du -sh "$COPY_PATH" | cut -f1)
+            print_warning "About to delete copy:"
+            echo "  Name: $(basename "$COPY_PATH")"
+            echo "  Size: $SIZE"
+            echo "  Path: $COPY_PATH"
+            echo ""
+            read -p "Are you sure? (yes/no): " confirm
+            if [ "$confirm" != "yes" ]; then
+                print_info "Cancelled"
+                return
+            fi
+        fi
+
+        print_info "Removing copy: $(basename "$COPY_PATH")"
+        rm -rf "$COPY_PATH"
+        print_success "Copy removed: $(basename "$COPY_PATH")"
     else
-        print_error "Usage: clean-copies [--force] --all | --old [days]"
+        print_error "Usage: clean-copies [--force] --all | --old [days] | <copy-name>"
         echo "  --all, -a           Remove all copies"
         echo "  --old [days]        Remove copies older than N days (default: 7)"
+        echo "  <copy-name>         Remove specific copy by name"
         echo "  --force, -f         Skip confirmation prompt"
+        echo ""
+        echo "Examples:"
+        echo "  ./claude-pod.sh clean-copies --all"
+        echo "  ./claude-pod.sh clean-copies --old 7"
+        echo "  ./claude-pod.sh clean-copies copy-project-20260312_170500"
+        echo "  ./claude-pod.sh clean-copies --force copy-project-20260312_170500"
     fi
 }
 
