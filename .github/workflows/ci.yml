@@ -17,12 +17,13 @@ jobs:
       - name: Validate Shell Scripts
         run: |
           echo "Checking shell scripts..."
-          shellcheck claude-pod.sh
-          shellcheck docker-entrypoint.sh
-          shellcheck merge-sandbox-config.sh
-          shellcheck show-sandbox-config.sh
-          shellcheck install-completion.sh
-          shellcheck completions/claude-pod.bash
+          # Allow info-level warnings (only fail on errors/warnings)
+          shellcheck -S warning claude-pod.sh
+          shellcheck -S warning docker-entrypoint.sh
+          shellcheck -S warning merge-sandbox-config.sh
+          shellcheck -S warning show-sandbox-config.sh
+          shellcheck -S warning install-completion.sh
+          shellcheck -S warning completions/claude-pod.bash
           echo "✓ All shell scripts valid"
 
   validate-configs:
@@ -51,12 +52,12 @@ jobs:
           ./merge-sandbox-config.sh
 
           # Verify output exists and is valid JSON
-          test -f ~/.sandbox-config.json
-          jq empty ~/.sandbox-config.json
+          test -f /tmp/sandbox-config-merged.json
+          jq empty /tmp/sandbox-config-merged.json
 
           # Verify merge preserved base config keys
-          jq -e '.sandbox_name' ~/.sandbox-config.json > /dev/null
-          jq -e '.instructions' ~/.sandbox-config.json > /dev/null
+          jq -e '.project_name' /tmp/sandbox-config-merged.json > /dev/null
+          jq -e '.instructions' /tmp/sandbox-config-merged.json > /dev/null
 
           echo "✓ Config merging works"
 

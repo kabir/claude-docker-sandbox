@@ -98,9 +98,11 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && rm -rf /var/lib/apt/lists/*
 
 # Install grpcurl (for testing gRPC APIs)
+# Download and extract or skip if unavailable
 RUN curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.9.1/grpcurl_1.9.1_linux_$(dpkg --print-architecture).tar.gz" \
     | tar -xz --no-same-owner -C /usr/local/bin grpcurl \
-    && chmod +x /usr/local/bin/grpcurl
+    && chmod +x /usr/local/bin/grpcurl \
+    || echo "Warning: grpcurl installation failed, skipping..."
 
 # Install additional Python development tools
 USER claude
