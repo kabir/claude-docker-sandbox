@@ -173,12 +173,6 @@ Examples:
 # Run Claude on a copy (simplified syntax!)
 ./claude-pod.sh -c -m ~/myproject claude "refactor everything" auto
 
-# Run multiple experiments in parallel
-./claude-pod.sh -c -m ~/proj claude "try approach A" auto &
-./claude-pod.sh -c -m ~/proj claude "try approach B" auto &
-./claude-pod.sh -c -m ~/proj claude "try approach C" auto &
-wait
-
 # List all copies
 ./claude-pod.sh list-copies
 
@@ -430,19 +424,11 @@ cp -r ~/myproject ~/tmp/experiment
 
 The container automatically matches your Mac user for seamless file access:
 
-- **Build time**: Creates a generic `claude` user (UID/GID from build args, defaults to 1000)
+- **Build time**: Creates a generic `claude` user (UID/GID 1000 by default)
 - **Runtime mapping**: `--userns=keep-id:uid=X,gid=Y` maps your Mac user to the container user
-- **Automatic detection**: Script detects your UID/GID with `id -u` and `id -g`
-- **Portable image**: Same image works for any user - no rebuilds needed!
-
-**How it works:**
-```bash
-# Your Mac: files owned by UID 501 (you)
-# Container: runs as UID 501 (mapped via --userns)
-# Result: you can read/write files normally
-```
-
-**For teams**: Share the same image - runtime mapping adapts to each user automatically.
+- **Automatic detection**: Script detects your UID/GID and maps container user to match
+- **Result**: Your Mac files (UID 501) are accessible as you in the container (UID 501)
+- **Portable**: Same image works for any user - runtime mapping adapts automatically
 
 ### Why Network Access Is Required
 
@@ -458,52 +444,42 @@ The container **cannot disable network access** because Claude Code needs it to 
 Security comes from **container isolation** and **selective access**, not network restrictions:
 
 **🔒 Container Isolation**:
-- Runs as non-root `claude` user inside container
-- Filesystem isolation from your host macOS
-- Process isolation - container processes can't affect host
-- Ephemeral containers (`--rm` flag) - deleted after exit
+- Non-root `claude` user with filesystem/process isolation
+- Ephemeral containers (`--rm` flag) deleted after exit
+- Container processes can't affect host system
 
 **📁 Selective Mounting**:
 - **No default mounts** - you explicitly choose what to expose
-- Only mounted directories are accessible to Claude
-- Everything else on your Mac is invisible to container
-- Example: Mount only `~/myproject`, rest of system hidden
+- Only mounted directories accessible; rest of Mac is invisible
+- Example: Mount `~/myproject`, everything else hidden
 
 **🛡️ Copy Mode Protection**:
-- `--copy` flag creates copy in `~/.cache/claude-copies/`
-- Original files **never** modified
-- Parallel experiments without risk
-- Easy discard if results unsatisfactory
+- Creates timestamped copy in `~/.cache/claude-copies/`
+- Original files never modified - safe parallel experiments
 
 **🔐 Credential Safety**:
-- Your `~/.claude` mounted read-only by default
-- Git credentials optional (mount `~/.ssh` only when needed)
-- GCloud credentials read-only
+- `~/.claude` mounted read-only by default
+- Git/GCloud credentials optional, read-only when mounted
 - No credentials stored in container image
 
 ### Best Practices for Safe Usage
 
 ```bash
 # ✅ Safe - Mount only what you need
-./claude-pod.sh -m ~/specific-project:/workspace/proj shell
+./claude-pod.sh -m ~/specific-project shell
 
 # ✅ Safest - Work on copies
-./claude-pod.sh --copy -m ~/project:/workspace/p shell
+./claude-pod.sh --copy -m ~/project shell
 
-# ✅ Safe - Use git branches for tracking
+# ✅ Safe - Use git branches
 git checkout -b claude-experiment
-./claude-pod.sh -m ~/project:/workspace/p claude "refactor" plan
+./claude-pod.sh -m ~/project claude "refactor" plan
 
-# ❌ Not recommended - Mounting entire home directory
-./claude-pod.sh -m ~:/workspace/home shell
+# ❌ Not recommended - Mounting home directory
+./claude-pod.sh -m ~ shell
 ```
 
-**Security Layers Summary**:
-1. Container isolation (process, filesystem, user)
-2. Selective mounting (you choose what's accessible)
-3. Copy mode (non-destructive experimentation)
-4. Ephemeral containers (clean state each run)
-5. Git workflow (version control for changes)
+**Security layers**: Container isolation • Selective mounting • Copy mode • Ephemeral containers • Git workflow
 
 ## Configuration
 

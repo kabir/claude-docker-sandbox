@@ -260,10 +260,19 @@ podman system prune -a
 
 ### Permission errors on mounts
 
-Podman on macOS handles permissions automatically. If you see errors:
+The container uses user namespace mapping for automatic permission handling. If you see errors:
 
 ```bash
-# Restart Podman machine
+# Verify your user mapping is working
+./claude-pod.sh shell
+# Inside container, create a test file in mounted directory
+touch /workspace/test-file
+exit
+
+# File should be owned by you on the host
+ls -l ~/path/to/mounted/dir/test-file
+
+# If problems persist, restart Podman machine
 podman machine stop
 podman machine start
 ```

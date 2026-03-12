@@ -170,18 +170,21 @@ Example:
 
 ### Copy Management
 
+**Built-in Commands** (Recommended):
 ```bash
-# List all copies
-ls -la ~/.cache/claude-copies/
+./claude-pod.sh list-copies                              # List with sizes/timestamps
+./claude-pod.sh clean-copies --old 7                     # Clean older than 7 days (prompts)
+./claude-pod.sh clean-copies copy-project-20260312_150001     # Remove specific copy (prompts)
+./claude-pod.sh clean-copies --all                       # Remove all (prompts)
+./claude-pod.sh clean-copies --force --all               # Force removal without prompts
+```
 
-# Check size
-du -sh ~/.cache/claude-copies/*
-
-# Clean old copies
-find ~/.cache/claude-copies -mtime +7 -exec rm -rf {} \;
-
-# Clean all copies
-rm -rf ~/.cache/claude-copies/*
+**Manual Commands** (if needed):
+```bash
+ls -la ~/.cache/claude-copies/                           # List copies
+du -sh ~/.cache/claude-copies/*                          # Check sizes
+find ~/.cache/claude-copies -mtime +7 -exec rm -rf {} \; # Clean old copies
+rm -rf ~/.cache/claude-copies/*                          # Clean all copies
 ```
 
 ### When Copies Are Created
@@ -251,6 +254,7 @@ RUN pip3 install --user --break-system-packages \
 
 ### Frequently Used Commands
 
+**From Host (Outside Container)**:
 ```bash
 # Build/rebuild image
 ./claude-pod.sh build
@@ -267,19 +271,31 @@ RUN pip3 install --user --break-system-packages \
 # Run Claude on copy
 ./claude-pod.sh -c -m ~/proj:/workspace/p claude "refactor" plan
 
+# List and manage copies
+./claude-pod.sh list-copies
+./claude-pod.sh clean-copies --old 7
+
 # Check Java versions
 ./claude-pod.sh run "sdk list java"
-
-# Switch Java version (in session)
-./claude-pod.sh shell
-> sdk use java 21.0.5-tem
-> java -version
 
 # GitHub operations
 ./claude-pod.sh run "gh pr list"
 
 # Search code with ripgrep
 ./claude-pod.sh -m ~/proj:/workspace/p run "rg 'TODO' /workspace/p"
+```
+
+**Inside Container**:
+```bash
+# View sandbox configuration and constraints
+sandbox-info
+
+# Switch Java version
+sdk use java 21.0.5-tem
+java -version
+
+# List installed Java versions
+sdk list java
 ```
 
 ### Environment Variables Available
