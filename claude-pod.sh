@@ -11,7 +11,6 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_NAME="claude-sandbox:latest"
-USE_COLOR=true
 
 # Colors (will be disabled if --no-color is passed)
 RED='\033[0;31m'

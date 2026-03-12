@@ -46,8 +46,9 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Create a non-root user for safer operations
 # Use USER_UID/USER_GID from build args to match host user
-# If GID already exists, user will be added to that existing group
-RUN useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/bash claude \
+# Create group first (ignore if it already exists), then create user
+RUN groupadd -g ${USER_GID} claude || true \
+    && useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/bash claude \
     && echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Install SDKMan as claude user
