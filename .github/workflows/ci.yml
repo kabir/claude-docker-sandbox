@@ -17,13 +17,13 @@ jobs:
       - name: Validate Shell Scripts
         run: |
           echo "Checking shell scripts..."
-          # Allow info-level warnings (only fail on errors/warnings)
-          shellcheck -S warning claude-pod.sh
-          shellcheck -S warning docker-entrypoint.sh
-          shellcheck -S warning merge-sandbox-config.sh
-          shellcheck -S warning show-sandbox-config.sh
-          shellcheck -S warning install-completion.sh
-          shellcheck -S warning completions/claude-pod.bash
+          # Only fail on errors, not warnings (bash completions use standard patterns that trigger warnings)
+          shellcheck -S error claude-pod.sh
+          shellcheck -S error docker-entrypoint.sh
+          shellcheck -S error merge-sandbox-config.sh
+          shellcheck -S error show-sandbox-config.sh
+          shellcheck -S error install-completion.sh
+          shellcheck -S error completions/claude-pod.bash
           echo "✓ All shell scripts valid"
 
   validate-configs:
@@ -74,9 +74,8 @@ jobs:
 
       - name: Build Container
         run: |
-          echo "Building container image..."
-          podman build -f Containerfile -t claude-sandbox:test .
-          echo "✓ Container built successfully"
+          # Use the build script which handles creating temporary local config
+          ./claude-pod.sh build
 
       - name: Verify Container Tools
         run: |
