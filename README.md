@@ -426,6 +426,24 @@ cp -r ~/myproject ~/tmp/experiment
 
 ⚠️ **The container has full network access** - This is **required** for Claude Code to work.
 
+### File Permissions and User Mapping
+
+The container automatically matches your Mac user for seamless file access:
+
+- **Build time**: Creates a generic `claude` user (UID/GID from build args, defaults to 1000)
+- **Runtime mapping**: `--userns=keep-id:uid=X,gid=Y` maps your Mac user to the container user
+- **Automatic detection**: Script detects your UID/GID with `id -u` and `id -g`
+- **Portable image**: Same image works for any user - no rebuilds needed!
+
+**How it works:**
+```bash
+# Your Mac: files owned by UID 501 (you)
+# Container: runs as UID 501 (mapped via --userns)
+# Result: you can read/write files normally
+```
+
+**For teams**: Share the same image - runtime mapping adapts to each user automatically.
+
 ### Why Network Access Is Required
 
 The container **cannot disable network access** because Claude Code needs it to function:

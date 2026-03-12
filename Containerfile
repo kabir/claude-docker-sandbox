@@ -1,5 +1,9 @@
 FROM ubuntu:24.04
 
+# Build arguments for user UID/GID (defaults to 1000 if not provided)
+ARG USER_UID=1000
+ARG USER_GID=1000
+
 # Avoid prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -41,7 +45,9 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Create a non-root user for safer operations
-RUN useradd -m -s /bin/bash claude \
+# Use USER_UID/USER_GID from build args to match host user
+# If GID already exists, user will be added to that existing group
+RUN useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/bash claude \
     && echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Install SDKMan as claude user

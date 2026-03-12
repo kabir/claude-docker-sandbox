@@ -282,8 +282,13 @@ podman_run() {
     local interactive="$1"
     shift
 
+    # Get current user's UID:GID for namespace mapping
+    local USER_UID=$(id -u)
+    local USER_GID=$(id -g)
+
     podman run $interactive --rm \
         --name "claude-sandbox-$$" \
+        --userns=keep-id:uid=${USER_UID},gid=${USER_GID} \
         -v "$HOME/.claude:/home/claude/.claude" \
         -v "$HOME/.config/gcloud:/home/claude/.config/gcloud:ro" \
         "${MOUNT_ARGS[@]}" \
@@ -341,10 +346,14 @@ trap cleanup EXIT
 
 # Build the image
 build() {
+    local USER_UID=$(id -u)
+    local USER_GID=$(id -g)
     print_info "Building Claude sandbox image..."
+    print_info "Using UID:GID = $USER_UID:$USER_GID (current user)"
     cd "$SCRIPT_DIR"
-    podman build -t "$IMAGE_NAME" .
+    podman build --build-arg USER_UID="$USER_UID" --build-arg USER_GID="$USER_GID" -t "$IMAGE_NAME" .
     print_success "Image built successfully"
+    print_info "Container user will run as UID:GID $USER_UID:$USER_GID to match your user"
 }
 
 # Start interactive shell
