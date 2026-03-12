@@ -11,7 +11,6 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_NAME="claude-sandbox:latest"
-USE_COLOR=true
 
 # Colors (will be disabled if --no-color is passed)
 RED='\033[0;31m'
@@ -29,7 +28,6 @@ disable_colors() {
     BLUE=''
     CYAN=''
     NC=''
-    USE_COLOR=false
 }
 
 print_info() { echo -e "${BLUE}ℹ${NC} $1"; }
@@ -266,8 +264,10 @@ podman_run() {
     shift
 
     # Get current user's UID:GID for namespace mapping
-    local USER_UID=$(id -u)
-    local USER_GID=$(id -g)
+    local USER_UID
+    local USER_GID
+    USER_UID=$(id -u)
+    USER_GID=$(id -g)
 
     podman run $interactive --rm \
         --name "claude-sandbox-$$" \
@@ -329,9 +329,11 @@ trap cleanup EXIT
 
 # Build the image
 build() {
-    local USER_UID=$(id -u)
-    local USER_GID=$(id -g)
+    local USER_UID
+    local USER_GID
     local TEMP_LOCAL_CONFIG=false
+    USER_UID=$(id -u)
+    USER_GID=$(id -g)
 
     # Create temporary empty local config if it doesn't exist (for Docker COPY)
     if [ ! -f "$SCRIPT_DIR/sandbox-config.local.json" ]; then
@@ -458,7 +460,8 @@ clean_copies() {
         return
     fi
 
-    local COPIES=$(ls -1d "$COPY_DIR"/copy-* 2>/dev/null | wc -l | tr -d ' ')
+    local COPIES
+    COPIES=$(ls -1d "$COPY_DIR"/copy-* 2>/dev/null | wc -l | tr -d ' ')
     if [ "$COPIES" -eq 0 ]; then
         print_info "No copies to clean"
         return
@@ -605,8 +608,10 @@ clean_copies() {
 
 # Mount current directory
 here_cmd() {
-    local CWD=$(pwd)
-    local BASENAME=$(basename "$CWD")
+    local CWD
+    local BASENAME
+    CWD=$(pwd)
+    BASENAME=$(basename "$CWD")
 
     # Check if we're in a meaningful directory (not home or root)
     if [ "$CWD" = "$HOME" ] || [ "$CWD" = "/" ]; then
@@ -643,7 +648,7 @@ save_profile() {
     local PROFILE_FILE="$PROFILE_DIR/$PROFILE_NAME.profile"
 
     # Save mounts to profile file
-    > "$PROFILE_FILE"  # Clear file
+    : > "$PROFILE_FILE"  # Clear file
     for arg in "${MOUNT_ARGS[@]}"; do
         if [ "$arg" != "-v" ]; then
             echo "$arg" >> "$PROFILE_FILE"
@@ -697,8 +702,10 @@ list_profiles() {
     echo ""
     for profile in "$PROFILE_DIR"/*.profile; do
         if [ -f "$profile" ]; then
-            local NAME=$(basename "$profile" .profile)
-            local MOUNTS=$(wc -l < "$profile" | tr -d ' ')
+            local NAME
+            local MOUNTS
+            NAME=$(basename "$profile" .profile)
+            MOUNTS=$(wc -l < "$profile" | tr -d ' ')
             printf "  📁 %-30s (%s mounts)\n" "$NAME" "$MOUNTS"
 
             # Show mounts
@@ -729,7 +736,7 @@ delete_profile() {
 
     # Show what will be deleted
     print_warning "About to delete profile '$PROFILE_NAME':"
-    cat "$PROFILE_FILE" | sed 's/^/  → /'
+    sed 's/^/  → /' < "$PROFILE_FILE"
     echo ""
     read -p "Are you sure? (yes/no): " confirm
     if [ "$confirm" != "yes" ]; then

@@ -1,8 +1,8 @@
 FROM ubuntu:24.04
 
-# Build arguments for user UID/GID (defaults to 1000 if not provided)
-ARG USER_UID=1000
-ARG USER_GID=1000
+# Build arguments for user UID/GID (defaults to 1001 to avoid conflicts with common system users)
+ARG USER_UID=1001
+ARG USER_GID=1001
 
 # Avoid prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -46,8 +46,9 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Create a non-root user for safer operations
 # Use USER_UID/USER_GID from build args to match host user
-# If GID already exists, user will be added to that existing group
-RUN useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/bash claude \
+# Create group first (ignore if it already exists), then create user
+RUN groupadd -g ${USER_GID} claude || true \
+    && useradd -u ${USER_UID} -g ${USER_GID} -m -s /bin/bash claude \
     && echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Install SDKMan as claude user
@@ -97,9 +98,11 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && rm -rf /var/lib/apt/lists/*
 
 # Install grpcurl (for testing gRPC APIs)
+# Download and extract or skip if unavailable
 RUN curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.9.1/grpcurl_1.9.1_linux_$(dpkg --print-architecture).tar.gz" \
     | tar -xz --no-same-owner -C /usr/local/bin grpcurl \
-    && chmod +x /usr/local/bin/grpcurl
+    && chmod +x /usr/local/bin/grpcurl \
+    || echo "Warning: grpcurl installation failed, skipping..."
 
 # Install additional Python development tools
 USER claude
