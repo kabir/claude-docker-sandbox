@@ -1,0 +1,32 @@
+# Environment and secrets - NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Temporary files and build artifacts
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Any local override scripts
+*-local.sh
+override-*.sh
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Any volumes or data created
+volumes/
+data/
+
+# Backup files
+*.bak
+*.backup
+
+# Any accidentally created local config
+config.local.*
+settings.local.*
