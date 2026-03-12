@@ -82,25 +82,25 @@ jobs:
           echo "Verifying tools are installed..."
 
           # Check Java (should have multiple versions via SDKMan)
-          podman run --rm claude-sandbox:test bash -c "source ~/.sdkman/bin/sdkman-init.sh && java -version"
+          podman run --rm claude-sandbox:latest bash -c "source ~/.sdkman/bin/sdkman-init.sh && java -version"
 
           # Check Python
-          podman run --rm claude-sandbox:test python3 --version
+          podman run --rm claude-sandbox:latest python3 --version
 
           # Check Node.js
-          podman run --rm claude-sandbox:test node --version
+          podman run --rm claude-sandbox:latest node --version
 
           # Check essential tools
-          podman run --rm claude-sandbox:test which git
-          podman run --rm claude-sandbox:test which mvn
-          podman run --rm claude-sandbox:test which rg
+          podman run --rm claude-sandbox:latest which git
+          podman run --rm claude-sandbox:latest which mvn
+          podman run --rm claude-sandbox:latest which rg
 
           echo "✓ All essential tools present"
 
       - name: Verify Sandbox Info Command
         run: |
           echo "Testing sandbox-info command..."
-          podman run --rm claude-sandbox:test sandbox-info
+          podman run --rm claude-sandbox:latest sandbox-info
           echo "✓ sandbox-info command works"
 
   test-script:
