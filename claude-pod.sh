@@ -100,10 +100,31 @@ while [[ $# -gt 0 ]]; do
                 print_copy "Creating copy: $SRC_PATH → $COPY_PATH"
                 cp -r "$SRC_PATH" "$COPY_PATH"
 
+                # Make the copy writable for all users (needed for Podman on macOS)
+                # The container sees files as owned by root, but we run as claude user
+                chmod -R a+w "$COPY_PATH" 2>/dev/null || true
+
+                # Create info file inside copy for reference within container
+                cat > "$COPY_PATH/.claude-copy-info" << EOF
+# Claude Copy Mode Information
+# This directory is a COPY - original files will NOT be modified
+
+Original Location: $SRC_PATH
+Copy Location: $COPY_PATH
+Copy Created: $(date)
+Container Path: $CONTAINER_PATH
+
+To merge changes back to original:
+  rsync -av $COPY_PATH/ $SRC_PATH/
+
+To view this info:
+  cat .claude-copy-info
+EOF
+
                 # Track for cleanup message later
                 COPY_PATHS+=("$COPY_PATH|$SRC_PATH")
 
-                # Mount the copy instead
+                # Mount the copy (made writable via chmod above)
                 MOUNT_ARGS+=("-v" "$COPY_PATH:$CONTAINER_PATH")
             else
                 # Normal mode, mount original
@@ -281,24 +302,31 @@ podman_run() {
 show_copy_summary() {
     if [ ${#COPY_PATHS[@]} -gt 0 ]; then
         echo ""
-        print_success "Copy mode completed!"
+        echo "════════════════════════════════════════════════════════"
+        print_success "Copy mode session completed!"
+        echo "════════════════════════════════════════════════════════"
         echo ""
         for entry in "${COPY_PATHS[@]}"; do
             COPY="${entry%%|*}"
             ORIG="${entry#*|}"
-            print_copy "Copy: $COPY"
+            print_copy "Copy Location: $COPY"
             print_info "Original: $ORIG"
             echo ""
-            echo "  Review changes:"
+            echo "  📊 Review what changed:"
             echo "    diff -r \"$ORIG\" \"$COPY\""
             echo ""
-            echo "  Copy back if you like the changes:"
+            echo "  ✅ Merge changes back to original:"
             echo "    rsync -av \"$COPY/\" \"$ORIG/\""
             echo ""
-            echo "  Or delete the copy:"
-            echo "    rm -rf \"$COPY\""
+            echo "  🗑️  Delete the copy:"
+            echo "    ./claude-pod.sh clean-copies --force --all"
+            echo "    # or: rm -rf \"$COPY\""
+            echo ""
+            echo "  📋 List all copies:"
+            echo "    ./claude-pod.sh list-copies"
             echo ""
         done
+        echo "════════════════════════════════════════════════════════"
     fi
 }
 

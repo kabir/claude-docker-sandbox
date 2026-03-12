@@ -44,5 +44,13 @@ echo "Working Directory: $(pwd)"
 echo "========================================="
 echo ""
 
+# Check if we're in copy mode by looking for .claude-copy-info files
+if find /workspace -maxdepth 2 -name ".claude-copy-info" -type f 2>/dev/null | grep -q .; then
+    echo "⚠️  COPY MODE ACTIVE - You are working on a COPY"
+    echo "   Original files will NOT be modified"
+    echo "   View info: cat .claude-copy-info (in any copied directory)"
+    echo ""
+fi
+
 # Execute the provided command
 exec "$@"
