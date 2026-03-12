@@ -51,6 +51,15 @@ COPY_MODE=false
 COPY_PATHS=()
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
+# First pass: Check for --copy flag anywhere in arguments
+# This ensures COPY_MODE is set before processing mounts
+for arg in "$@"; do
+    if [[ "$arg" == "--copy" ]] || [[ "$arg" == "-c" ]]; then
+        COPY_MODE=true
+        break
+    fi
+done
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --profile|-p)
@@ -312,7 +321,15 @@ build() {
 # Start interactive shell
 shell() {
     if [ "$COPY_MODE" = true ]; then
-        print_warning "Running in COPY mode - working on copies in /tmp"
+        print_warning "Running in COPY mode - working on copies"
+        if [ ${#COPY_PATHS[@]} -gt 0 ]; then
+            for entry in "${COPY_PATHS[@]}"; do
+                COPY="${entry%%|*}"
+                ORIG="${entry#*|}"
+                print_copy "Copy location: $COPY"
+                print_info "Original: $ORIG"
+            done
+        fi
     fi
     print_info "Starting interactive shell..."
     podman_run "-it" /bin/bash
@@ -322,7 +339,13 @@ shell() {
 run_cmd() {
     local cmd="$1"
     if [ "$COPY_MODE" = true ]; then
-        print_warning "Running in COPY mode - working on copies in /tmp"
+        print_warning "Running in COPY mode - working on copies"
+        if [ ${#COPY_PATHS[@]} -gt 0 ]; then
+            for entry in "${COPY_PATHS[@]}"; do
+                COPY="${entry%%|*}"
+                print_copy "Copy: $COPY"
+            done
+        fi
     fi
     print_info "Running: $cmd"
     podman_run "-it" bash -c "source ~/.sdkman/bin/sdkman-init.sh && $cmd"
@@ -334,7 +357,15 @@ run_claude() {
     local mode="${2:-plan}"
 
     if [ "$COPY_MODE" = true ]; then
-        print_warning "Running in COPY mode - working on copies in /tmp"
+        print_warning "Running in COPY mode - working on copies"
+        if [ ${#COPY_PATHS[@]} -gt 0 ]; then
+            for entry in "${COPY_PATHS[@]}"; do
+                COPY="${entry%%|*}"
+                ORIG="${entry#*|}"
+                print_copy "Copy: $COPY"
+                print_info "Original: $ORIG"
+            done
+        fi
         print_warning "Original files will NOT be modified"
     fi
 

@@ -151,7 +151,19 @@ Smart auto-mapping - just provide the path:
 
 ### Copy Mode - Safe Experimentation
 
-The `-c` or `--copy` flag creates copies in `~/.cache/claude-copies/` instead of modifying originals:
+The `-c` or `--copy` flag creates copies in `~/.cache/claude-copies/` instead of modifying originals.
+
+**💡 Tip**: Flag order doesn't matter! Both work:
+- `./claude-pod.sh -c -m ~/project` ✅
+- `./claude-pod.sh -m ~/project --copy` ✅
+
+When you use copy mode, the script shows you the exact copy location:
+```
+📋 Creating copy: /Users/you/project → ~/.cache/claude-copies/copy-project-20260312_150001
+📋 Copy: ~/.cache/claude-copies/copy-project-20260312_150001
+```
+
+Examples:
 
 ```bash
 # Work on a copy (safest!)
