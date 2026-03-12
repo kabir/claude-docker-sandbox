@@ -50,9 +50,13 @@ WORKDIR /home/claude
 
 RUN curl -s "https://get.sdkman.io" | bash
 
-# Source SDKMan and install Java and Maven
+# Source SDKMan and install all LTS Java versions (17, 21, 25) + Maven
+# Set Java 17 as default
 RUN bash -c "source /home/claude/.sdkman/bin/sdkman-init.sh \
+    && sdk install java 17.0.13-tem \
     && sdk install java 21.0.5-tem \
+    && sdk install java 25.0.1-tem \
+    && sdk default java 17.0.13-tem \
     && sdk install maven 3.9.9 \
     && sdk flush archives \
     && sdk flush temp"
@@ -67,10 +71,29 @@ ENV MAVEN_HOME="${SDKMAN_DIR}/candidates/maven/current"
 USER root
 RUN npm install -g @anthropic-ai/claude-code
 
-# Install Protocol Buffer compiler (for Python a2a projects)
+# Install Protocol Buffer compiler and useful CLI tools
 RUN apt-get update && apt-get install -y \
     protobuf-compiler \
+    ripgrep \
+    fd-find \
+    bat \
+    && rm -rf /var/lib/apt/lists/* \
+    # Create symlinks for fd and bat (Ubuntu uses different names)
+    && ln -s $(which fdfind) /usr/local/bin/fd \
+    && ln -s $(which batcat) /usr/local/bin/bat
+
+# Install GitHub CLI
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
+
+# Install grpcurl (for testing gRPC APIs)
+RUN curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v1.9.1/grpcurl_1.9.1_linux_$(dpkg --print-architecture).tar.gz" \
+    | tar -xz --no-same-owner -C /usr/local/bin grpcurl \
+    && chmod +x /usr/local/bin/grpcurl
 
 # Install additional Python development tools
 USER claude

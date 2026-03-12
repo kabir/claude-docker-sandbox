@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Add Python user packages to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Source SDKMan to make Java and Maven available
 if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
     source "$HOME/.sdkman/bin/sdkman-init.sh"
@@ -15,10 +18,11 @@ fi
 echo "========================================="
 echo "Claude Code Sandbox Environment"
 echo "========================================="
-echo "Java Version:"
+echo "Java (default):"
 java -version 2>&1 | head -1
+echo "  All installed: $(sdk list java 2>/dev/null | grep installed | awk '{print $NF}' | tr '\n' ' ')"
 echo ""
-echo "Maven Version:"
+echo "Maven:"
 mvn -version | head -1
 echo ""
 echo "Python Version:"
@@ -29,6 +33,12 @@ node --version
 echo ""
 echo "Claude Code Version:"
 claude --version
+echo ""
+echo "Modern CLI Tools:"
+which rg fd bat gh grpcurl 2>&1 | sed 's/^/  /'
+echo ""
+echo "Python Tools:"
+which pytest ruff mypy 2>&1 | sed 's/^/  /'
 echo ""
 echo "Working Directory: $(pwd)"
 echo "========================================="

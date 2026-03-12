@@ -167,7 +167,7 @@ GIT_COMMITTER_EMAIL=your.email@example.com
 
 ### Customizing the Image
 
-Edit `Dockerfile` to customize:
+Edit `Containerfile` to customize:
 
 **Add a tool:**
 ```dockerfile
@@ -306,7 +306,7 @@ git pull
 
 ### Update Tools in Container
 
-Edit `Dockerfile`, then:
+Edit `Containerfile`, then:
 
 ```bash
 ./claude-pod.sh build
@@ -317,7 +317,7 @@ Edit `Dockerfile`, then:
 The container uses the latest Claude Code CLI from npm. To update:
 
 ```dockerfile
-# In Dockerfile, the line:
+# In Containerfile, the line:
 RUN npm install -g @anthropic-ai/claude-code
 
 # Will always get the latest. To force update:
@@ -345,7 +345,7 @@ nano .env  # Add your credentials
 ./claude-pod.sh build
 ```
 
-The `Dockerfile` is the same across machines, ensuring consistent environments.
+The `Containerfile` is the same across machines, ensuring consistent environments.
 
 ## Cleanup
 
@@ -376,7 +376,7 @@ podman system prune -a
 
 ## Best Practices
 
-1. **Keep Dockerfile in git** - Track your environment
+1. **Keep Containerfile in git** - Track your environment
 2. **Don't commit .env** - It's in .gitignore for a reason
 3. **Use .env.example** - Template for team members
 4. **Rebuild regularly** - Keep tools updated
@@ -386,5 +386,5 @@ podman system prune -a
 
 - Read [README.md](README.md) for usage examples
 - Read [GITHUB.md](GITHUB.md) before pushing to GitHub
-- Customize `Dockerfile` for your needs
+- Customize `Containerfile` for your needs
 - Create shell aliases for common workflows

@@ -5,7 +5,7 @@
 Before pushing to GitHub, verify these items:
 
 ### ✅ Safe to Commit
-- ✅ `Dockerfile` - No secrets, just build instructions
+- ✅ `Containerfile` - No secrets, just build instructions
 - ✅ `docker-entrypoint.sh` - Generic script, no secrets
 - ✅ `claude-pod.sh` - Helper script, no secrets
 - ✅ `.env.example` - Template file only, no actual credentials
@@ -41,7 +41,7 @@ git status
 # Verify .env is NOT listed
 # It should show:
 # - .gitignore
-# - Dockerfile
+# - Containerfile
 # - docker-entrypoint.sh
 # - claude-pod.sh
 # - .env.example (safe - just a template)
@@ -140,7 +140,7 @@ git status  # should NOT show .env
 
 ```bash
 # Work on improvements
-git add Dockerfile
+git add Containerfile
 git commit -m "Update: Add new tool to Docker image"
 git push
 
@@ -261,7 +261,7 @@ As of now, your claude-docker-sandbox folder contains:
 ## Files in Repository
 
 **Tracked:**
-- `Dockerfile` - Image definition
+- `Containerfile` - Image definition
 - `docker-entrypoint.sh` - Container startup script
 - `claude-pod.sh` - Flexible runner script
 - `.env.example` - Configuration template
