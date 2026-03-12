@@ -1,8 +1,8 @@
 FROM ubuntu:24.04
 
-# Build arguments for user UID/GID (defaults to 1000 if not provided)
-ARG USER_UID=1000
-ARG USER_GID=1000
+# Build arguments for user UID/GID (defaults to 1001 to avoid conflicts with common system users)
+ARG USER_UID=1001
+ARG USER_GID=1001
 
 # Avoid prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
