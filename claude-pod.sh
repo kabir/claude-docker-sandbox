@@ -348,10 +348,35 @@ trap cleanup EXIT
 build() {
     local USER_UID=$(id -u)
     local USER_GID=$(id -g)
+    local TEMP_LOCAL_CONFIG=false
+
+    # Create temporary empty local config if it doesn't exist (for Docker COPY)
+    if [ ! -f "$SCRIPT_DIR/sandbox-config.local.json" ]; then
+        echo '{}' > "$SCRIPT_DIR/sandbox-config.local.json"
+        TEMP_LOCAL_CONFIG=true
+    fi
+
     print_info "Building Claude sandbox image..."
     print_info "Using UID:GID = $USER_UID:$USER_GID (current user)"
+
+    if [ "$TEMP_LOCAL_CONFIG" = false ]; then
+        print_info "Found sandbox-config.local.json - will merge with base config"
+    fi
+
     cd "$SCRIPT_DIR"
     podman build --build-arg USER_UID="$USER_UID" --build-arg USER_GID="$USER_GID" -t "$IMAGE_NAME" .
+    local BUILD_EXIT=$?
+
+    # Cleanup temporary file if we created it
+    if [ "$TEMP_LOCAL_CONFIG" = true ]; then
+        rm -f "$SCRIPT_DIR/sandbox-config.local.json"
+    fi
+
+    if [ $BUILD_EXIT -ne 0 ]; then
+        print_error "Build failed"
+        return $BUILD_EXIT
+    fi
+
     print_success "Image built successfully"
     print_info "Container user will run as UID:GID $USER_UID:$USER_GID to match your user"
 }

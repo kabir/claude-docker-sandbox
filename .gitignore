@@ -30,3 +30,6 @@ data/
 # Any accidentally created local config
 config.local.*
 settings.local.*
+
+# Local sandbox configuration (personal overrides)
+sandbox-config.local.json

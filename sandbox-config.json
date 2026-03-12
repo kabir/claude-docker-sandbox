@@ -1,0 +1,26 @@
+{
+  "project_name": "Claude Podman Sandbox",
+  "instructions": [
+    "This is a containerized development environment - Docker/Podman is NOT available inside.",
+    "Tests requiring Docker or Testcontainers CANNOT run in this environment.",
+    "Identify which tests require containers and skip them using project-specific methods.",
+    "Focus on unit tests and non-container integration tests.",
+    "Check project documentation for how to skip container-based tests."
+  ],
+  "environment_notes": [
+    "No Docker daemon - this is intentional for security and simplicity",
+    "Network access available for downloading dependencies and API calls",
+    "Mounted directories have full read/write via user namespace mapping",
+    "Git operations work but SSH keys not mounted (cannot push without adding them)",
+    "Available tools: Java (17, 21, 25), Maven, Python, Node.js, gRPC tools",
+    "Switch Java versions: 'sdk use java 21.0.5-tem'",
+    "Modern CLI tools: ripgrep (rg), fd, bat, gh, grpcurl, jq, tree"
+  ],
+  "recommended_workflow": [
+    "Read project-specific CLAUDE.md or README.md for project instructions",
+    "Identify which tests require Docker/Testcontainers",
+    "Run tests that can execute in this environment",
+    "Document any tests that need manual verification on host",
+    "Use grpcurl or curl for manual API testing where applicable"
+  ]
+}

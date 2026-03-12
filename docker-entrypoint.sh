@@ -18,6 +18,19 @@ fi
 echo "========================================="
 echo "Claude Code Sandbox Environment"
 echo "========================================="
+
+# Show sandbox configuration if it exists
+if [ -f "$HOME/.sandbox-config.json" ]; then
+    echo ""
+    echo "📋 Sandbox Instructions:"
+    if command -v jq &> /dev/null; then
+        jq -r '.instructions[]' "$HOME/.sandbox-config.json" | sed 's/^/  ℹ️  /'
+    else
+        grep -o '"instructions":\s*\[.*\]' "$HOME/.sandbox-config.json" | sed 's/^/  /'
+    fi
+    echo ""
+    echo "  💡 View full config: cat ~/.sandbox-config.json"
+fi
 echo "Java (default):"
 java -version 2>&1 | head -1
 echo "  All installed: $(sdk list java 2>/dev/null | grep installed | awk '{print $NF}' | tr '\n' ' ')"

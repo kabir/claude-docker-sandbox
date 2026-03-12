@@ -1,0 +1,13 @@
+{
+  "instructions": [
+    "PERSONAL: Always check GitHub issue tracker before starting work",
+    "REMINDER: Update CHANGELOG.md when fixing issues"
+  ],
+  "environment_notes": [
+    "My workflow: Run unit tests first, document integration test needs"
+  ],
+  "recommended_workflow": [
+    "For me: Always create feature branch from main, not develop",
+    "My preference: Commit after each logical change, not at the end"
+  ]
+}

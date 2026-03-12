@@ -113,10 +113,23 @@ RUN pip3 install --user --no-cache-dir --break-system-packages \
 # Set working directory
 WORKDIR /workspace
 
-# Copy entrypoint script
+# Copy entrypoint script, helper scripts, and sandbox configuration
 USER root
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY show-sandbox-config.sh /usr/local/bin/sandbox-info
+COPY merge-sandbox-config.sh /tmp/merge-config.sh
+COPY sandbox-config.json /tmp/
+COPY sandbox-config.local.json /tmp/
+
+# Merge configs and place in home directory
+RUN cd /tmp \
+    && chmod +x /tmp/merge-config.sh \
+    && bash /tmp/merge-config.sh \
+    && mv /tmp/sandbox-config-merged.json /home/claude/.sandbox-config.json \
+    && chown claude:$(id -g claude) /home/claude/.sandbox-config.json \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/sandbox-info \
+    && rm -f /tmp/merge-config.sh /tmp/sandbox-config.json /tmp/sandbox-config.local.json
 
 # Switch back to claude user for safer execution
 USER claude

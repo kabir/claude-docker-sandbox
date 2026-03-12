@@ -534,6 +534,96 @@ Then rebuild:
 ./claude-pod.sh build
 ```
 
+### Sandbox Configuration
+
+The sandbox includes a configuration file that Claude reads on startup, explaining environment constraints and capabilities.
+
+**Base configuration (`sandbox-config.json` - committed):**
+- Generic sandbox limitations (no Docker/Testcontainers)
+- Available tools and versions
+- Universal constraints that apply to all projects
+
+**Philosophy:**
+- Keep base config generic - it applies to the sandbox itself, not specific projects
+- Project-specific instructions belong in each project's `CLAUDE.md` or `README.md`
+- Use local config for personal cross-project preferences
+
+**2. Rebuild the image:**
+
+```bash
+./claude-pod.sh build
+```
+
+**3. Instructions are shown on container startup:**
+
+```
+📋 Sandbox Instructions:
+  ℹ️  Tests requiring Docker/Testcontainers cannot run in this environment
+  ℹ️  Use -DskipITs to skip integration tests
+```
+
+**4. View config anytime inside container:**
+
+```bash
+sandbox-info          # Pretty formatted view
+cat ~/.sandbox-config.json  # Raw JSON
+```
+
+**Example:** The default config explains the sandbox has no Docker, lists available tools (Java 17/21/25, Maven, Python, etc.), and reminds Claude to check project-specific documentation.
+
+### Local Configuration Overrides
+
+For personal customizations that shouldn't be committed:
+
+**1. Create `sandbox-config.local.json` (gitignored):**
+
+```json
+{
+  "instructions": [
+    "My personal note: Always check issue links before starting"
+  ],
+  "environment_notes": [
+    "My custom environment setup..."
+  ]
+}
+```
+
+**2. Rebuild:**
+
+```bash
+./claude-pod.sh build
+# Automatically detects and merges sandbox-config.local.json if present
+```
+
+**How merging works:**
+- Base config: `sandbox-config.json` (committed, shared with team)
+- Local config: `sandbox-config.local.json` (gitignored, personal)
+- Arrays are concatenated (both configs' instructions appear)
+- Objects are merged (local overrides base)
+- `project_name` from local takes precedence if set
+
+**Use cases for local config:**
+- Personal workflow preferences that apply across all your projects
+- Reminders about your coding standards
+- Your preferred commit/branch strategies
+- Machine-specific environment notes
+
+**For project-specific instructions:**
+Create `CLAUDE.md` in each project repository. Example for A2A Java:
+```markdown
+# A2A Java Project
+
+## Testing
+- Skip Testcontainer tests: `mvn test -Dskip.testcontainers=true`
+- Run TCK tests: See tests/compatibility/ directory
+
+## Build
+- Use Java 21: `sdk use java 21.0.5-tem`
+- Build command: `mvn clean install -DskipITs`
+```
+
+Claude will read this when working in that directory.
+
 ## Troubleshooting
 
 ### Podman not found
