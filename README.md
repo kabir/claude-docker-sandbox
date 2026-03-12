@@ -58,14 +58,17 @@ Your `~/.claude` config is automatically mounted, so existing auth works.
 ### 3. Start Using It
 
 ```bash
-# Interactive shell with no projects mounted
-./claude-pod.sh shell
+# Interactive shell (no mounts)
+./claude-pod.sh
 
-# Mount a project
-./claude-pod.sh -m ~/myproject:/workspace/proj shell
+# Mount current directory
+./claude-pod.sh here
+
+# Mount a specific project (auto-maps to /workspace/myproject)
+./claude-pod.sh -m ~/myproject
 
 # Run Claude on a project
-./claude-pod.sh -m ~/myproject:/workspace/proj claude "add tests" plan
+./claude-pod.sh -m ~/myproject claude "add tests" plan
 ```
 
 ## Usage
@@ -76,11 +79,23 @@ Your `~/.claude` config is automatically mounted, so existing auth works.
 # Build the image
 ./claude-pod.sh build
 
-# Interactive shell (empty workspace)
-./claude-pod.sh shell
+# Interactive shell (no command needed!)
+./claude-pod.sh
+
+# Mount current directory
+./claude-pod.sh here
+
+# Mount specific directory (auto-maps to /workspace/basename)
+./claude-pod.sh -m ~/myproject
 
 # Run a command
 ./claude-pod.sh run "java -version"
+
+# List all copies
+./claude-pod.sh list-copies
+
+# Clean old copies
+./claude-pod.sh clean-copies --old 7
 
 # Help
 ./claude-pod.sh --help
@@ -88,41 +103,53 @@ Your `~/.claude` config is automatically mounted, so existing auth works.
 
 ### Mounting Directories
 
-Mount any directory into the container workspace:
+Smart auto-mapping - just provide the path:
 
 ```bash
-# Mount one directory
-./claude-pod.sh -m ~/myproject:/workspace/myproject shell
+# Simple auto-mapping (uses basename)
+./claude-pod.sh -m ~/myproject              # → /workspace/myproject
+./claude-pod.sh -m ~/code/testing           # → /workspace/testing
 
-# Mount multiple directories
-./claude-pod.sh \
-    -m ~/project-a:/workspace/a \
-    -m ~/project-b:/workspace/b \
-    shell
+# Current directory shortcut
+./claude-pod.sh here                        # Auto-mounts current dir
+
+# Multiple directories
+./claude-pod.sh -m ~/project-a -m ~/project-b
+
+# Explicit mapping (if you need custom paths)
+./claude-pod.sh -m ~/myproject:/workspace/custom-name
 
 # Inside container, they appear at:
 /workspace/myproject/
-/workspace/a/
-/workspace/b/
+/workspace/project-a/
+/workspace/project-b/
 ```
 
 ### Copy Mode - Safe Experimentation
 
-The `--copy` flag creates copies in `~/.cache/claude-copies/` instead of modifying originals:
+The `-c` or `--copy` flag creates copies in `~/.cache/claude-copies/` instead of modifying originals:
 
 ```bash
 # Work on a copy (safest!)
-./claude-pod.sh --copy -m ~/myproject:/workspace/proj shell
+./claude-pod.sh -c -m ~/myproject
 
-# Run Claude on a copy
-./claude-pod.sh --copy -m ~/myproject:/workspace/proj \
-    claude "refactor everything" auto
+# Run Claude on a copy (simplified syntax!)
+./claude-pod.sh -c -m ~/myproject claude "refactor everything" auto
 
 # Run multiple experiments in parallel
-./claude-pod.sh -c -m ~/proj:/workspace/p claude "try approach A" auto &
-./claude-pod.sh -c -m ~/proj:/workspace/p claude "try approach B" auto &
-./claude-pod.sh -c -m ~/proj:/workspace/p claude "try approach C" auto &
+./claude-pod.sh -c -m ~/proj claude "try approach A" auto &
+./claude-pod.sh -c -m ~/proj claude "try approach B" auto &
+./claude-pod.sh -c -m ~/proj claude "try approach C" auto &
 wait
+
+# List all copies
+./claude-pod.sh list-copies
+
+# Clean old copies (older than 7 days)
+./claude-pod.sh clean-copies --old 7
+
+# Clean all copies
+./claude-pod.sh clean-copies --all
 
 # After completion, you get:
 # ✓ Copy mode completed!
@@ -135,7 +162,7 @@ wait
 # Copy back if you like it:
 #   rsync -av ~/.cache/claude-copies/copy-proj-20260312_150001/ ~/proj/
 #
-# Or delete:
+# Or delete manually:
 #   rm -rf ~/.cache/claude-copies/copy-proj-20260312_150001
 ```
 
@@ -170,11 +197,15 @@ wait
 ### Example 1: Quick Exploration
 
 ```bash
-# Mount a project and explore
-./claude-pod.sh -m ~/thinbg/my-cool-project:/workspace/cool shell
+# Navigate to project and mount
+cd ~/my-cool-project
+./claude-pod.sh here
+
+# Or mount from anywhere (auto-maps to /workspace/my-cool-project)
+./claude-pod.sh -m ~/my-cool-project
 
 # Inside container:
-cd /workspace/cool
+cd /workspace/my-cool-project
 ls -la
 mvn test
 claude "explain the architecture"
@@ -183,39 +214,36 @@ claude "explain the architecture"
 ### Example 2: Safe Experimentation
 
 ```bash
-# Make a copy first
-cp -r ~/myproject ~/tmp/myproject-experiment
+# Use built-in copy mode (automatic!)
+./claude-pod.sh -c -m ~/myproject claude "try using records instead of POJOs" auto
 
-# Let Claude work on the copy
-./claude-pod.sh -m ~/tmp/myproject-experiment:/workspace/exp \
-    claude "try using records instead of POJOs" auto
-
+# After completion, the script shows you the copy location
 # Review changes
-diff -r ~/myproject ~/tmp/myproject-experiment
+./claude-pod.sh list-copies
 
-# Keep or discard
-rm -rf ~/tmp/myproject-experiment  # or keep if good
+# Copy back if you like it (path shown in output)
+rsync -av ~/.cache/claude-copies/copy-myproject-20260312_150001/ ~/myproject/
+
+# Or discard with clean-copies
+./claude-pod.sh clean-copies --all
 ```
 
 ### Example 3: Multi-Project Work
 
 ```bash
-# Work on SDK and application together
-./claude-pod.sh \
-    -m ~/a2a-sdk:/workspace/sdk \
-    -m ~/my-app:/workspace/app \
-    shell
+# Work on SDK and application together (auto-mapping!)
+./claude-pod.sh -m ~/a2a-sdk -m ~/my-app
 
 # Inside, work across both:
-cd /workspace/app
-# Update to use new SDK features
+cd /workspace/my-app
+# Update to use new SDK features from /workspace/a2a-sdk
 ```
 
 ### Example 4: Testing with Specific Versions
 
 ```bash
 # The container has Java 17 (default), 21, and 25
-./claude-pod.sh -m ~/legacy-project:/workspace/legacy shell
+./claude-pod.sh -m ~/legacy-project
 
 # Inside, switch Java version
 sdk use java 21.0.5-tem
@@ -229,30 +257,27 @@ mvn clean test
 ### Example 5: Parallel Experiments with Copy Mode
 
 ```bash
-# Run three different refactoring approaches simultaneously
-./claude-pod.sh -c -m ~/project:/workspace/p \
-    claude "use dependency injection pattern" auto &
-
-./claude-pod.sh -c -m ~/project:/workspace/p \
-    claude "use factory pattern" auto &
-
-./claude-pod.sh -c -m ~/project:/workspace/p \
-    claude "use service locator pattern" auto &
-
+# Run three different refactoring approaches simultaneously (simplified!)
+./claude-pod.sh -c -m ~/project claude "use dependency injection pattern" auto &
+./claude-pod.sh -c -m ~/project claude "use factory pattern" auto &
+./claude-pod.sh -c -m ~/project claude "use service locator pattern" auto &
 wait  # Wait for all to finish
 
-# Review all three
-ls -la ~/.cache/claude-copies/
-# copy-project-20260312_150001/  (dependency injection)
-# copy-project-20260312_150002/  (factory)
-# copy-project-20260312_150003/  (service locator)
+# Review all three with the built-in command
+./claude-pod.sh list-copies
+# 📋 copy-project-20260312_150001    520K  2026-03-12 15:00:01
+# 📋 copy-project-20260312_150002    518K  2026-03-12 15:00:05
+# 📋 copy-project-20260312_150003    522K  2026-03-12 15:00:10
 
 # Compare approaches
-diff -r ~/.cache/claude-copies/copy-project-150001 \
-        ~/.cache/claude-copies/copy-project-150002
+diff -r ~/.cache/claude-copies/copy-project-20260312_150001 \
+        ~/.cache/claude-copies/copy-project-20260312_150002
 
 # Pick the winner and merge
-rsync -av ~/.cache/claude-copies/copy-project-150001/ ~/project/
+rsync -av ~/.cache/claude-copies/copy-project-20260312_150001/ ~/project/
+
+# Clean up the rest
+./claude-pod.sh clean-copies --all
 ```
 
 ## What's Inside the Container
