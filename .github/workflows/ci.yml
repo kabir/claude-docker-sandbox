@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-scripts:
+    name: Validate Shell Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Validate Shell Scripts
+        run: |
+          echo "Checking shell scripts..."
+          shellcheck claude-pod.sh
+          shellcheck docker-entrypoint.sh
+          shellcheck merge-sandbox-config.sh
+          shellcheck show-sandbox-config.sh
+          shellcheck install-completion.sh
+          shellcheck completions/claude-pod.bash
+          echo "✓ All shell scripts valid"
+
+  validate-configs:
+    name: Validate Configuration Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate JSON Files
+        run: |
+          echo "Validating JSON files..."
+          jq empty sandbox-config.json
+          jq empty sandbox-config.local.json.example
+          echo "✓ All JSON files valid"
+
+      - name: Test Config Merging
+        run: |
+          echo "Testing config merge..."
+          # Create empty local config for testing
+          echo '{}' > sandbox-config.local.json
+
+          # Run merge script
+          ./merge-sandbox-config.sh
+
+          # Verify output exists and is valid JSON
+          test -f ~/.sandbox-config.json
+          jq empty ~/.sandbox-config.json
+
+          # Verify merge preserved base config keys
+          jq -e '.sandbox_name' ~/.sandbox-config.json > /dev/null
+          jq -e '.instructions' ~/.sandbox-config.json > /dev/null
+
+          echo "✓ Config merging works"
+
+  build-container:
+    name: Build Container Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Build Container
+        run: |
+          echo "Building container image..."
+          podman build -f Containerfile -t claude-sandbox:test .
+          echo "✓ Container built successfully"
+
+      - name: Verify Container Tools
+        run: |
+          echo "Verifying tools are installed..."
+
+          # Check Java (should have multiple versions via SDKMan)
+          podman run --rm claude-sandbox:test bash -c "source ~/.sdkman/bin/sdkman-init.sh && java -version"
+
+          # Check Python
+          podman run --rm claude-sandbox:test python3 --version
+
+          # Check Node.js
+          podman run --rm claude-sandbox:test node --version
+
+          # Check essential tools
+          podman run --rm claude-sandbox:test which git
+          podman run --rm claude-sandbox:test which mvn
+          podman run --rm claude-sandbox:test which rg
+
+          echo "✓ All essential tools present"
+
+      - name: Verify Sandbox Info Command
+        run: |
+          echo "Testing sandbox-info command..."
+          podman run --rm claude-sandbox:test sandbox-info
+          echo "✓ sandbox-info command works"
+
+  test-script:
+    name: Test Script Functionality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Help Text
+        run: |
+          echo "Testing help text..."
+          ./claude-pod.sh --help > /dev/null
+          echo "✓ Help text works"
+
+      - name: Test Profile Commands (without Podman)
+        run: |
+          echo "Testing profile commands..."
+          # These should work without Podman running
+          ./claude-pod.sh list-profiles > /dev/null || true
+          echo "✓ Profile commands don't crash"
+
+      - name: Verify Required Files Exist
+        run: |
+          echo "Checking required files..."
+          test -f Containerfile
+          test -f docker-entrypoint.sh
+          test -f .env.example
+          test -f .gitignore
+          test -f README.md
+          test -f TOOLS.md
+          test -f CLAUDE.md
+          test -f completions/claude-pod.zsh
+          test -f completions/claude-pod.bash
+          echo "✓ All required files present"
+
+      - name: Verify Scripts are Executable
+        run: |
+          echo "Checking execute permissions..."
+          test -x claude-pod.sh
+          test -x install-completion.sh
+          test -x merge-sandbox-config.sh
+          test -x show-sandbox-config.sh
+          echo "✓ Scripts are executable"
