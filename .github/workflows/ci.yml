@@ -9,7 +9,7 @@ jobs:
     name: Validate Shell Scripts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
@@ -30,7 +30,7 @@ jobs:
     name: Validate Configuration Files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -65,7 +65,7 @@ jobs:
     name: Build Container Image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Podman
         run: |
@@ -107,7 +107,7 @@ jobs:
     name: Test Script Functionality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Test Help Text
         run: |
