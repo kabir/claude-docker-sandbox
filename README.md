@@ -67,9 +67,11 @@ Get tab completion for all commands, flags, and profiles:
 ./install-completion.sh zsh   # for Zsh (macOS default)
 ./install-completion.sh bash  # for Bash
 
-# Reload your shell
+# Reload your shell OR open a new terminal
 source ~/.zshrc   # or source ~/.bashrc
 ```
+
+**⚠️ Important**: Completion only works after reloading your shell or opening a new terminal window. It won't work in your current terminal until you run `source ~/.zshrc` or open a fresh terminal.
 
 Now you get tab completion:
 - `./claude-pod.sh <TAB>` → Shows all commands
@@ -609,9 +611,16 @@ Tab completion for all commands, options, and dynamic values!
 ./install-completion.sh zsh   # macOS default
 ./install-completion.sh bash
 
-# Reload your shell
+# IMPORTANT: Reload your shell or open a new terminal!
 source ~/.zshrc   # or ~/.bashrc
+# OR just open a new terminal window - completion loads automatically
 ```
+
+**💡 Tip**: If tab completion doesn't work immediately, you need to either:
+- Run `source ~/.zshrc` in your current terminal, OR
+- Open a new terminal window/tab
+
+Completion won't work in your current terminal until you reload it!
 
 ### What Gets Completed
 
