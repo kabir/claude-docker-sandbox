@@ -55,7 +55,29 @@ nano .env  # Add your ANTHROPIC_VERTEX_PROJECT_ID
 
 Your `~/.claude` config is automatically mounted, so existing auth works.
 
-### 3. Start Using It
+### 3. Enable Shell Completion (Optional but Recommended!)
+
+Get tab completion for all commands, flags, and profiles:
+
+```bash
+# Auto-detect your shell and install
+./install-completion.sh
+
+# Or specify your shell
+./install-completion.sh zsh   # for Zsh (macOS default)
+./install-completion.sh bash  # for Bash
+
+# Reload your shell
+source ~/.zshrc   # or source ~/.bashrc
+```
+
+Now you get tab completion:
+- `./claude-pod.sh <TAB>` → Shows all commands
+- `./claude-pod.sh --prof<TAB>` → Completes to `--profile`
+- `./claude-pod.sh --profile <TAB>` → Shows your saved profiles
+- `./claude-pod.sh clean-copies --<TAB>` → Shows `--all`, `--old`, `--force`
+
+### 4. Start Using It
 
 ```bash
 # Interactive shell (no mounts)
@@ -572,6 +594,71 @@ The container is ephemeral (removed after exit), but:
 - ✅ Your `~/.claude` persists (mounted)
 - ✅ Your mounted directories persist (they're on your host)
 - ❌ Anything you create in `/workspace` without mounts is lost
+
+## Shell Completion
+
+Tab completion for all commands, options, and dynamic values!
+
+### Installation
+
+```bash
+# Auto-detect and install
+./install-completion.sh
+
+# Or specify your shell
+./install-completion.sh zsh   # macOS default
+./install-completion.sh bash
+
+# Reload your shell
+source ~/.zshrc   # or ~/.bashrc
+```
+
+### What Gets Completed
+
+**Commands:**
+```bash
+./claude-pod.sh <TAB>
+# Shows: build  shell  here  run  claude  list-copies  clean-copies  save-profile  list-profiles...
+```
+
+**Flags:**
+```bash
+./claude-pod.sh --<TAB>
+# Shows: --copy  --profile  --no-color  --help
+
+./claude-pod.sh clean-copies --<TAB>
+# Shows: --all  --old  --force
+```
+
+**Dynamic Values:**
+```bash
+./claude-pod.sh --profile <TAB>
+# Shows: workspace  fullstack  my-sdk  (your saved profiles)
+
+./claude-pod.sh claude "add tests" <TAB>
+# Shows: plan  auto  dontAsk  bypassPermissions
+```
+
+**Directory Completion:**
+```bash
+./claude-pod.sh -m ~/pro<TAB>
+# Completes directories: ~/projects/  ~/programming/
+```
+
+### Features
+
+- ✅ **Command completion** - All commands and aliases
+- ✅ **Option completion** - All flags and options
+- ✅ **Profile completion** - Dynamically lists your saved profiles
+- ✅ **Mode completion** - Claude permission modes
+- ✅ **Path completion** - Standard directory completion for `-m`
+- ✅ **Context-aware** - Different completions per command
+
+### Files
+
+- `completions/claude-pod.zsh` - Zsh completion script
+- `completions/claude-pod.bash` - Bash completion script
+- `install-completion.sh` - Easy installer
 
 ## Tips
 
