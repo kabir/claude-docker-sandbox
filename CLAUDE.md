@@ -22,7 +22,7 @@ This document provides context for Claude Code when working on this project.
 **Container Image** (`Containerfile`):
 - Base: Ubuntu 24.04
 - Languages: Java (17/21/25 via SDKMan), Python 3.12.3, Node.js 20.20.1
-- Tools: Maven, git, gh, ripgrep, fd, bat, grpcurl, protobuf, pytest, ruff, mypy
+- Tools: Maven, git, gh, backlog CLI, ripgrep, fd, bat, grpcurl, protobuf, pytest, ruff, mypy
 - User: `claude` (non-root)
 - Working directory: `/workspace`
 

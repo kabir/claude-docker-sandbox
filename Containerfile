@@ -74,9 +74,9 @@ ENV PATH="${SDKMAN_DIR}/candidates/java/current/bin:${SDKMAN_DIR}/candidates/mav
 ENV JAVA_HOME="${SDKMAN_DIR}/candidates/java/current"
 ENV MAVEN_HOME="${SDKMAN_DIR}/candidates/maven/current"
 
-# Install Claude Code CLI
+# Install Claude Code CLI and Backlog.md
 USER root
-RUN npm install -g @anthropic-ai/claude-code
+RUN npm install -g @anthropic-ai/claude-code @backlog/cli
 
 # Install Protocol Buffer compiler and useful CLI tools
 RUN apt-get update && apt-get install -y \

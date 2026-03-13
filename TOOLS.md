@@ -30,6 +30,7 @@ sdk list java
 |------|---------|
 | **gh** | GitHub CLI - create PRs, manage issues |
 | **git** | Version control |
+| **backlog** | Task management CLI (Backlog.md) |
 | **grpcurl** | gRPC API testing (like curl for gRPC) |
 | **curl** | HTTP client |
 | **wget** | Download files |
@@ -39,6 +40,20 @@ sdk list java
 | **protobuf** | Protocol buffer compiler |
 | **jq** | JSON processor |
 | **tree** | Directory tree visualization |
+
+**Using Backlog.md:**
+```bash
+# Initialize backlog in your project
+backlog init
+
+# Create a task
+backlog create feature "Add authentication"
+
+# List tasks
+backlog list
+
+# More info: https://backlog.md
+```
 
 ### Python Tools
 

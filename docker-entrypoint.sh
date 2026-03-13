@@ -47,6 +47,9 @@ echo ""
 echo "Claude Code Version:"
 claude --version
 echo ""
+echo "Backlog CLI Version:"
+backlog --version 2>&1 || echo "  not available"
+echo ""
 echo "Modern CLI Tools:"
 which rg fd bat gh grpcurl 2>&1 | sed 's/^/  /'
 echo ""
